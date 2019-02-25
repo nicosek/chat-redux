@@ -3,30 +3,60 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import Message from '../components/message';
-import fetchMessages from "../actions/index";
+import MessageForm from './message_form';
+import { fetchMessages } from "../actions/index";
 
 class MessageList extends Component {
+  constructor(props) {
+    super(props);
+    this.myRef = React.createRef();
+  }
+
   componentWillMount() {
-    this.props.fetchMessages();
-    debugger;
+    this.props.fetchMessages(this.props.messages.channel);
+  }
+
+  componentDidMount() {
+    setInterval(() => { this.props.fetchMessages(this.props.messages.channel); this.scrollDown(); }, 30000);
+  }
+
+  componentDidUpdate() {
+    this.list.scrollTop = this.list.scrollHeight;
   }
 
   renderList() {
-    return this.props.messages.map((message) => {
+    return this.props.messages.messages.map((message) => {
       return (
-        <Message key={message.content} message={message} />
+        <Message key={message.created_at} message={message} />
       );
     });
   }
 
+  scrollDown() {
+    this.list.scrollTop = this.list.scrollHeight;
+    return;
+  }
+
   render() {
-    return (
-      <div className="message-list list-group">
-        <ul className="list-group cities">
-          {this.renderList()}
-        </ul>
-      </div>
-    );
+    if (!this.props.messages.messages || this.props.messages.messages.length === 0) {
+      return (
+        <div>
+          <p>Nothing yet!</p>
+          <MessageForm />
+        </div>
+      );
+    } else {
+      return (
+        <div className="message-list list-group">
+          <ul className="list-group messages" ref={(list) => { this.list = list; }}>
+            {this.renderList()}
+          </ul>
+          <div>
+            <MessageForm />
+          </div>
+        </div>
+      );
+    }
   }
 }
 
